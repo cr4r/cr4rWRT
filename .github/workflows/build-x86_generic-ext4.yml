@@ -1,0 +1,244 @@
+#=================================================
+# https://github.com/P3TERX/Actions-OpenWrt
+# Description: Build OpenWrt using GitHub Actions
+# Lisence: MIT
+# Author: P3TERX
+# Blog: https://p3terx.com
+# HelmiWrt by helmiau.com
+#=================================================
+
+name: Build x86_generic ext4
+
+on:
+  workflow_dispatch:
+#  schedule:
+#    - cron: 0 17 * * *
+#  watch:
+#    types: started
+
+env:
+  TOOLCHAIN_TAG: coolsnowwolf-lede-master
+  TOOLCHAIN_NAME: toolchain-image-coolsnowwolf-lede-master-x86_generic.img
+  CONFIG_FILE: config/x86_generic-lean-target.config
+  DIY_SH: scripts/lean-openwrt.sh
+  WEBROOT: /data/dnmp/www/openwrt.cc
+  UPLOAD_FIRMWARE: true
+  UPLOAD_BIN_DIR: true
+  UPLOAD_RELEASE: true
+  TZ: Asia/Jakarta
+
+jobs:
+  Build:
+    runs-on: ubuntu-18.04
+
+    outputs:
+      OPENWRTROOT: ${{ steps.prepare.outputs.OPENWRTROOT }}
+      PLATFORM: ${{ steps.compile.outputs.PLATFORM }}
+      TARGET: ${{ steps.compile.outputs.TARGET }}
+      SUBTARGET: ${{ steps.compile.outputs.SUBTARGET }}
+      FIRMWARE: ${{ steps.compile.outputs.FIRMWARE }}
+      GENERATE_STATUS: ${{ steps.generate.outputs.GENERATE_STATUS }}
+
+    steps:
+      - name: Initialization Environment
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo -E apt-get -qq update
+          sudo -E apt-get -qq install $(curl -fsSL git.io/depends-ubuntu-1804) rdate
+          sudo -E apt-get -qq autoremove --purge
+          sudo -E apt-get -qq clean
+          sudo ln -sf /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
+          docker image prune -a -f
+          echo "FILE_DATE=$(date +"%Y.%m.%d")" >> $GITHUB_ENV
+
+      - name: Free Up More Space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 256
+          swap-size-mb: 1024
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+          overprovision-lvm: 'true'
+
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Prepare Toolchain Image
+        id: prepare
+        run: |
+          df -hT $PWD
+          wget -q https://github.com/helmiau/OpenWrt-Toolchain/releases/download/$TOOLCHAIN_TAG/$TOOLCHAIN_NAME -O toolchain-image.img
+          mkdir openwrt-ro openwrt workdir overlay
+          sudo mount -o loop toolchain-image.img openwrt-ro
+          sudo mount -t overlay overlay -o lowerdir=openwrt-ro,upperdir=overlay,workdir=workdir openwrt
+          cd openwrt
+          echo "OPENWRTROOT=$PWD" >> $GITHUB_ENV
+          echo "::set-output name=OPENWRTROOT::$(echo $PWD)"
+          git pull
+
+      - name: Install Feeds
+        id: feeds
+        run: |
+          cd $OPENWRTROOT
+          chmod +x ../scripts/*.sh
+          ../scripts/hook-feeds.sh
+
+      - name: Load Custom Configuration
+        run: |
+          [ -e files ] && mv files $OPENWRTROOT/files
+          [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $OPENWRTROOT/.config
+          cat config/x86-lean-extra.config >> $OPENWRTROOT/.config
+          cat config/universal.config >> $OPENWRTROOT/.config
+          sed -i 's/CONFIG_TARGET_ROOTFS_EXT4FS=n/CONFIG_TARGET_ROOTFS_EXT4FS=y/g' $OPENWRTROOT/.config
+          sed -i 's/CONFIG_TARGET_ROOTFS_SQUASHFS=y/CONFIG_TARGET_ROOTFS_SQUASHFS=n/g' $OPENWRTROOT/.config
+          cd $OPENWRTROOT
+          # USB Additional Suppport
+          echo -e "\nCONFIG_USB_EHCI_HCD=y\nCONFIG_USB_FHCI_HCD=y\nCONFIG_USB_HWA_HCD=y\nCONFIG_USB_ISP116X_HCD=y\nCONFIG_USB_ISP1760_HCD=y\nCONFIG_USB_OHCI_HCD=y\nCONFIG_USB_R8A66597_HCD=y\nCONFIG_USB_SL811_HCD=y\nCONFIG_USB_U132_HCD=y\nCONFIG_USB_UHCI_HCD=y\nCONFIG_USB_XHCI_HCD=y\n" >> target/linux/x86/config-5.10
+          echo -e "\nCONFIG_USB_EHCI_HCD=y\nCONFIG_USB_FHCI_HCD=y\nCONFIG_USB_HWA_HCD=y\nCONFIG_USB_ISP116X_HCD=y\nCONFIG_USB_ISP1760_HCD=y\nCONFIG_USB_OHCI_HCD=y\nCONFIG_USB_R8A66597_HCD=y\nCONFIG_USB_SL811_HCD=y\nCONFIG_USB_U132_HCD=y\nCONFIG_USB_UHCI_HCD=y\nCONFIG_USB_XHCI_HCD=y\n" >> target/linux/x86/64/config-5.10
+          ../$DIY_SH
+          ../scripts/preset-clash-core.sh 386
+          ../scripts/preset-v2raya.sh 32
+          ../scripts/preset-speedtest.sh i386
+          ../scripts/preset-terminal-tools.sh
+
+      - name: Load HelmiWrt Mods
+        id: mods
+        env:
+          REPO_OWNER: helmiau
+          REPO_NAME: HelmiWrt
+        run: |
+          cd $OPENWRTROOT
+          git config --global credential.helper store
+          git clone https://${{ env.REPO_OWNER }}:${{ secrets.HELMIWRT_RW }}@github.com/${{ env.REPO_OWNER }}/${{ env.REPO_NAME }}-Plus.git filex
+          rm -rf filex/{README.md,LICENSE,runbashing.sh}
+          cp -r filex/* package/base-files/files/
+          rm -rf filex 
+          sed -i -e 's/\r$//' $(grep -rli "/bin/bash" "package/base-files/files/bin")
+          chmod +x package/base-files/files/bin/*
+          mv package/base-files/files/root/.oh-my-zsh/themes/ys.zsh-theme files/root/.oh-my-zsh/themes/ys.zsh-theme
+
+      - name: Download Package
+        id: package
+        run: |
+          cd $OPENWRTROOT
+          make defconfig
+          make download -j16 && make download -j16
+          find dl -size -1024c -exec ls -l {} \;
+          find dl -size -1024c -exec rm -f {} \;
+
+      - name: Compile Tools
+        id: tools
+        run: |
+          cd $OPENWRTROOT
+          echo -e "$(nproc) thread compile"
+          make tools/compile -j$(nproc) || make tools/compile -j1 V=s
+
+      - name: Compile Packages
+        id: compile
+        run: |
+          cd $OPENWRTROOT
+          echo -e "$(nproc) thread compile"
+          make target/compile -j$(nproc) || make target/compile -j1 V=s IGNORE_ERRORS=1
+          make diffconfig
+          make package/compile -j$(nproc) IGNORE_ERRORS=1 || make package/compile -j1 V=s IGNORE_ERRORS=1
+          make package/index
+          cd $OPENWRTROOT/bin/packages/*
+          PLATFORM=$(basename `pwd`)
+          echo "PLATFORM=$PLATFORM" >> $GITHUB_ENV
+          echo "::set-output name=PLATFORM::$(echo $PLATFORM)"
+          cd $OPENWRTROOT/bin/targets/*
+          TARGET=$(basename `pwd`)
+          echo "TARGET=$TARGET" >> $GITHUB_ENV
+          echo "::set-output name=TARGET::$(echo $TARGET)"
+          cd *
+          SUBTARGET=$(basename `pwd`)
+          echo "SUBTARGET=$SUBTARGET" >> $GITHUB_ENV
+          echo "::set-output name=SUBTARGET::$(echo $SUBTARGET)"
+          echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+          echo "::set-output name=FIRMWARE::$(echo $PWD)"
+          echo "::set-output name=COMPILE_STATUS::success"
+
+      - name: Generate Firmware
+        if: steps.compile.outputs.COMPILE_STATUS == 'success'
+        id: generate
+        run: |
+          cd data/opkg
+          sed -i "s/subtarget/$SUBTARGET/g" distfeeds*.conf
+          sed -i "s/target\//$TARGET\//g" distfeeds*.conf
+          sed -i "s/platform/$PLATFORM/g" distfeeds*.conf
+          cd $OPENWRTROOT
+          mkdir -p files/etc/uci-defaults/
+          cp ../scripts/init-settings.sh files/etc/uci-defaults/99-init-settings
+          mkdir -p files/etc/opkg
+          cp ../data/opkg/distfeeds.conf.mirror files/etc/opkg
+          mkdir -p files/www/snapshots
+          cp -r bin/targets files/www/snapshots
+          cp ../data/opkg/distfeeds.conf files/etc/opkg
+          mkdir -p files/www/ipv6-modules
+          cp bin/packages/$PLATFORM/luci/luci-proto-ipv6* files/www/ipv6-modules
+          cp bin/packages/$PLATFORM/base/{ipv6helper*,odhcpd-ipv6only*,odhcp6c*,6in4*} "files/www/ipv6-modules"
+          cp bin/targets/$TARGET/$SUBTARGET/packages/{ip6tables*,kmod-nf-nat6*,kmod-ipt-nat6*,kmod-sit*,kmod-ip6tables-extra*,kmod-iptunnel*} "files/www/ipv6-modules"
+          mkdir -p files/bin
+          cp ../scripts/ipv6-helper.sh files/bin/ipv6-helper
+          make package/install -j$(nproc) || make package/install -j1 V=s
+          make target/install -j$(nproc) || make target/install -j1 V=s
+          make checksum
+          grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
+          [ -s DEVICE_NAME ] && echo "DEVICE_NAME=$(cat DEVICE_NAME)" >> $GITHUB_ENV
+          echo "::set-output name=GENERATE_STATUS::success"
+
+      - name: Organize Files
+        id: organize
+        if: env.UPLOAD_FIRMWARE == 'true' && steps.generate.outputs.GENERATE_STATUS == 'success' && !cancelled()
+        run: |
+          #find . -type f -name '*.ipk' | while read FILE ; do
+            #echo -e $(readlink -f ${FILE}) ;
+          #done
+          cd ${FIRMWARE}
+          rm -rf packages
+          find . -type f -name 'openwrt-*' | while read FILE ; do
+            newfile="$(echo ${FILE} |sed -e 's/openwrt-/helmiwrt-/')" ;
+            echo -e $(readlink -f ${FILE}) ;
+            mv "${FILE}" "${newfile}" ;
+          done
+          find . -type f -name 'config.buildinfo' -exec mv "{}" "helmiwrt-config-${{ env.DEVICE_NAME }}.txt" \;
+          find . -type f -name 'sha256sums' -exec mv "{}" "helmiwrt-sha256sums-${{ env.DEVICE_NAME }}.txt" \;
+          find . -type f -name 'sha256sums' | while read FILE ; do
+            sed -i 's/openwrt-/helmiwrt-/g' ${FILE} ;
+            echo -e $(readlink -f ${FILE}) ;
+          done
+          echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+          echo "::set-output name=status::success"
+          echo "::set-output name=ORGANIZE_STATUS::success"
+
+      - name: Delete Older Releases and Tags
+        uses: dev-drprasad/delete-older-releases@v0.2.0
+        if: steps.generate.outputs.GENERATE_STATUS == 'success' && steps.organize.outputs.status == 'success' && !cancelled()
+        with:
+          keep_latest: 30
+          delete_tags: true
+          delete_tag_pattern: helmiwrt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate New Release Tag
+        id: tag
+        if: steps.generate.outputs.GENERATE_STATUS == 'success' && steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
+        run: |
+          sleep 20
+          echo "::set-output name=release_tag::helmiwrt-${{ env.FILE_DATE }}"
+          touch release.txt
+          echo "::set-output name=status::success"
+
+      - name: Upload Firmware Files to GitHub Release
+        uses: softprops/action-gh-release@v1
+        if: steps.generate.outputs.GENERATE_STATUS == 'success' && steps.tag.outputs.status == 'success' && !cancelled()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          prerelease: true
+          name: HelmiWrt ${{ env.FILE_DATE }}
+          tag_name: ${{ steps.tag.outputs.release_tag }}
+          files: ${{ env.FIRMWARE }}/*

@@ -1,0 +1,283 @@
+#=================================================
+# Title: Batch Trigger Build
+# Description: This actions will run another workflows with delay from "$DELAY_INT" environment
+# Lisence: MIT
+# Author: helmiau
+# Blog: https://helmiau.com
+#=================================================
+# Usage notes:
+# - Create a GitHub (if you don't have it) and login
+# - Create a new (Personal Access Token) with "read, write repo and workflow" permissions, go to https://github.com/settings/tokens/new to create new token .
+# - Copy your token and keep it, because you won't see it anymore.
+# - Go to https://github.com/your_username/HelmiWrt-OS/settings/secrets/actions (change your_username with yours).
+# - Create new Actions Secrets by clicking "New repository secret" with name "HELMIWRT_RW".
+# - Paste your token to "Value" coloumn, then save it with green button under this coloumn.
+# - Then you can run this actions.
+#=================================================
+
+name: Batch Trigger Build
+
+on:
+  workflow_dispatch:
+#  schedule:
+#    - cron: 0 17 * * *
+#  watch:
+#    types: started
+
+env:
+  REPO_OWNER: helmiau
+  REPO_NAME: HelmiWrt-OS
+  BRANCH_NAME: main
+  # delay nterval in seconds
+  DELAY_INT: 300
+  # other configs
+  FAILPROP: false
+  TRIGGERWF: true
+  WAITWF: false
+  
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Actions Checkout running succesfully, resuming build
+        run: |
+          sleep 30
+          echo "Actions Checkout running succesfully, resuming build"
+
+      - name: Running Armvirt64 Build
+        uses: convictional/trigger-workflow-and-wait@v1.5.0
+        with:
+          owner: ${{ env.REPO_OWNER }}
+          repo: ${{ env.REPO_NAME }}
+          github_token: ${{ secrets.HELMIWRT_RW }}
+          workflow_file_name: build-armvirt64.yml
+          ref: ${{ env.BRANCH_NAME }}
+          propagate_failure: ${{ env.FAILPROP }}
+          trigger_workflow: ${{ env.TRIGGERWF }}
+          wait_workflow: ${{ env.WAITWF }}
+
+      - name: Previous build running succesfully, resuming build
+        run: |
+          sleep $DELAY_INT
+          echo "Previous build running succesfully, resuming build"
+
+      - name: Running NanoPi R2C Build
+        uses: convictional/trigger-workflow-and-wait@v1.5.0
+        with:
+          owner: ${{ env.REPO_OWNER }}
+          repo: ${{ env.REPO_NAME }}
+          github_token: ${{ secrets.HELMIWRT_RW }}
+          workflow_file_name: build-nanopi-r2c.yml
+          ref: ${{ env.BRANCH_NAME }}
+          propagate_failure: ${{ env.FAILPROP }}
+          trigger_workflow: ${{ env.TRIGGERWF }}
+          wait_workflow: ${{ env.WAITWF }}
+
+      - name: Previous build running succesfully, resuming build
+        run: |
+          sleep $DELAY_INT
+          echo "Previous build running succesfully, resuming build"
+
+      - name: Running NanoPi R2S Build
+        uses: convictional/trigger-workflow-and-wait@v1.5.0
+        with:
+          owner: ${{ env.REPO_OWNER }}
+          repo: ${{ env.REPO_NAME }}
+          github_token: ${{ secrets.HELMIWRT_RW }}
+          workflow_file_name: build-nanopi-r2s.yml
+          ref: ${{ env.BRANCH_NAME }}
+          propagate_failure: ${{ env.FAILPROP }}
+          trigger_workflow: ${{ env.TRIGGERWF }}
+          wait_workflow: ${{ env.WAITWF }}
+
+      - name: Previous build running succesfully, resuming build
+        run: |
+          sleep $DELAY_INT
+          echo "Previous build running succesfully, resuming build"
+
+      - name: Running NanoPi R4S Build
+        uses: convictional/trigger-workflow-and-wait@v1.5.0
+        with:
+          owner: ${{ env.REPO_OWNER }}
+          repo: ${{ env.REPO_NAME }}
+          github_token: ${{ secrets.HELMIWRT_RW }}
+          workflow_file_name: build-nanopi-r4s.yml
+          ref: ${{ env.BRANCH_NAME }}
+          propagate_failure: ${{ env.FAILPROP }}
+          trigger_workflow: ${{ env.TRIGGERWF }}
+          wait_workflow: ${{ env.WAITWF }}
+
+      - name: Previous build running succesfully, resuming build
+        run: |
+          sleep $DELAY_INT
+          echo "Previous build running succesfully, resuming build"
+
+      - name: Running OrangePi R1 Plus Build
+        uses: convictional/trigger-workflow-and-wait@v1.5.0
+        with:
+          owner: ${{ env.REPO_OWNER }}
+          repo: ${{ env.REPO_NAME }}
+          github_token: ${{ secrets.HELMIWRT_RW }}
+          workflow_file_name: build-opir1plus.yml
+          ref: ${{ env.BRANCH_NAME }}
+          propagate_failure: ${{ env.FAILPROP }}
+          trigger_workflow: ${{ env.TRIGGERWF }}
+          wait_workflow: ${{ env.WAITWF }}
+
+      - name: Previous build running succesfully, resuming build
+        run: |
+          sleep $DELAY_INT
+          echo "Previous build running succesfully, resuming build"
+
+      - name: Running OrangePi Zero Build
+        uses: convictional/trigger-workflow-and-wait@v1.5.0
+        with:
+          owner: ${{ env.REPO_OWNER }}
+          repo: ${{ env.REPO_NAME }}
+          github_token: ${{ secrets.HELMIWRT_RW }}
+          workflow_file_name: build-opizero.yml
+          ref: ${{ env.BRANCH_NAME }}
+          propagate_failure: ${{ env.FAILPROP }}
+          trigger_workflow: ${{ env.TRIGGERWF }}
+          wait_workflow: ${{ env.WAITWF }}
+
+      - name: Previous build running succesfully, resuming build
+        run: |
+          sleep $DELAY_INT
+          echo "Previous build running succesfully, resuming build"
+
+      - name: Running Raspberry Pi 1 Build
+        uses: convictional/trigger-workflow-and-wait@v1.5.0
+        with:
+          owner: ${{ env.REPO_OWNER }}
+          repo: ${{ env.REPO_NAME }}
+          github_token: ${{ secrets.HELMIWRT_RW }}
+          workflow_file_name: build-rpi1.yml
+          ref: ${{ env.BRANCH_NAME }}
+          propagate_failure: ${{ env.FAILPROP }}
+          trigger_workflow: ${{ env.TRIGGERWF }}
+          wait_workflow: ${{ env.WAITWF }}
+
+      - name: Previous build running succesfully, resuming build
+        run: |
+          sleep $DELAY_INT
+          echo "Previous build running succesfully, resuming build"
+
+      - name: Running Raspberry Pi 2 Build
+        uses: convictional/trigger-workflow-and-wait@v1.5.0
+        with:
+          owner: ${{ env.REPO_OWNER }}
+          repo: ${{ env.REPO_NAME }}
+          github_token: ${{ secrets.HELMIWRT_RW }}
+          workflow_file_name: build-rpi2.yml
+          ref: ${{ env.BRANCH_NAME }}
+          propagate_failure: ${{ env.FAILPROP }}
+          trigger_workflow: ${{ env.TRIGGERWF }}
+          wait_workflow: ${{ env.WAITWF }}
+
+      - name: Previous build running succesfully, resuming build
+        run: |
+          sleep $DELAY_INT
+          echo "Previous build running succesfully, resuming build"
+
+      - name: Running Raspberry Pi 3 Build
+        uses: convictional/trigger-workflow-and-wait@v1.5.0
+        with:
+          owner: ${{ env.REPO_OWNER }}
+          repo: ${{ env.REPO_NAME }}
+          github_token: ${{ secrets.HELMIWRT_RW }}
+          workflow_file_name: build-rpi3.yml
+          ref: ${{ env.BRANCH_NAME }}
+          propagate_failure: ${{ env.FAILPROP }}
+          trigger_workflow: ${{ env.TRIGGERWF }}
+          wait_workflow: ${{ env.WAITWF }}
+
+      - name: Previous build running succesfully, resuming build
+        run: |
+          sleep $DELAY_INT
+          echo "Previous build running succesfully, resuming build"
+
+      - name: Running Raspberry Pi 4 Build
+        uses: convictional/trigger-workflow-and-wait@v1.5.0
+        with:
+          owner: ${{ env.REPO_OWNER }}
+          repo: ${{ env.REPO_NAME }}
+          github_token: ${{ secrets.HELMIWRT_RW }}
+          workflow_file_name: build-rpi4.yml
+          ref: ${{ env.BRANCH_NAME }}
+          propagate_failure: ${{ env.FAILPROP }}
+          trigger_workflow: ${{ env.TRIGGERWF }}
+          wait_workflow: ${{ env.WAITWF }}
+
+      - name: Previous build running succesfully, resuming build
+        run: |
+          sleep $DELAY_INT
+          echo "Previous build running succesfully, resuming build"
+
+      - name: Running x86_64 ext4 Build
+        uses: convictional/trigger-workflow-and-wait@v1.5.0
+        with:
+          owner: ${{ env.REPO_OWNER }}
+          repo: ${{ env.REPO_NAME }}
+          github_token: ${{ secrets.HELMIWRT_RW }}
+          workflow_file_name: build-x86_64-ext4.yml
+          ref: ${{ env.BRANCH_NAME }}
+          propagate_failure: ${{ env.FAILPROP }}
+          trigger_workflow: ${{ env.TRIGGERWF }}
+          wait_workflow: ${{ env.WAITWF }}
+
+      - name: Previous build running succesfully, resuming build
+        run: |
+          sleep $DELAY_INT
+          echo "Previous build running succesfully, resuming build"
+
+      - name: Running x86_64 squashfs Build
+        uses: convictional/trigger-workflow-and-wait@v1.5.0
+        with:
+          owner: ${{ env.REPO_OWNER }}
+          repo: ${{ env.REPO_NAME }}
+          github_token: ${{ secrets.HELMIWRT_RW }}
+          workflow_file_name: build-x86_64.yml
+          ref: ${{ env.BRANCH_NAME }}
+          propagate_failure: ${{ env.FAILPROP }}
+          trigger_workflow: ${{ env.TRIGGERWF }}
+          wait_workflow: ${{ env.WAITWF }}
+
+      - name: Previous build running succesfully, resuming build
+        run: |
+          sleep $DELAY_INT
+          echo "Previous build running succesfully, resuming build"
+
+      - name: Running x86_generic ext4 Build
+        uses: convictional/trigger-workflow-and-wait@v1.5.0
+        with:
+          owner: ${{ env.REPO_OWNER }}
+          repo: ${{ env.REPO_NAME }}
+          github_token: ${{ secrets.HELMIWRT_RW }}
+          workflow_file_name: build-x86_generic-ext4.yml
+          ref: ${{ env.BRANCH_NAME }}
+          propagate_failure: ${{ env.FAILPROP }}
+          trigger_workflow: ${{ env.TRIGGERWF }}
+          wait_workflow: ${{ env.WAITWF }}
+
+      - name: Previous build running succesfully, resuming build
+        run: |
+          sleep $DELAY_INT
+          echo "Previous build running succesfully, resuming build"
+
+      - name: Running x86_generic squashfs Build
+        uses: convictional/trigger-workflow-and-wait@v1.5.0
+        with:
+          owner: ${{ env.REPO_OWNER }}
+          repo: ${{ env.REPO_NAME }}
+          github_token: ${{ secrets.HELMIWRT_RW }}
+          workflow_file_name: build-x86_generic.yml
+          ref: ${{ env.BRANCH_NAME }}
+          propagate_failure: ${{ env.FAILPROP }}
+          trigger_workflow: ${{ env.TRIGGERWF }}
+          wait_workflow: ${{ env.WAITWF }}
