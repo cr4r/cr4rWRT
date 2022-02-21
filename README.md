@@ -1,7 +1,27 @@
-<h4 align="center">All information about this firmware, features, installations, screenshots, video preview, credits etc. can be found at</h4>
-<h3 align="center"><a href="https://www.helmiau.com/blog/helmiwrt-os">Helmi Amirudin | HelmiWrt OS is Customized OpenWrt Firmware</a></h3>
-<h4 align="center">because it has translations feature. This will make it easier for you to understand each point.</h4>
+# immortalwrt-21.02
+### ImmortalWrt-21.02 for HG680P - B860H
 
-<h3 align="center"><a href="https://www.helmiau.com/pay/index_en.html">Donation Here</a></h3>
+### Firmware Information 
+> 1. Default IP: `192.168.1.1`
+> 2. Default username: `root`
+> 3. Default password: `passwd`
+> 4. Default WIFI name: `LYNX`
+> 5. Default WIFI password: `none`
 
-<h5 align="center">Copyright by <a href="http://www.helmiau.com">Helmi Amirudin</a> ® 2021 <br> Thank You ! 🤝</h5>
+### Install to EMMC
+> `Login to OpenWrt → System → Amlogic Service → Install OpenWrt`
+
+### Overviews
+![Overviews](https://github.com/lynxnexy/immortalwrt/blob/main/pages/Screen%20Shot%202022-01-11%20at%2018.13.31.png)
+![Overviews](https://github.com/lynxnexy/immortalwrt/blob/main/pages/Screen%20Shot%202022-01-11%20at%2018.13.58.png)
+![Overviews](https://github.com/lynxnexy/immortalwrt/blob/main/pages/Screen%20Shot%202022-01-11%20at%2018.14.41.png)
+![Overviews](https://github.com/lynxnexy/immortalwrt/blob/main/pages/Screen%20Shot%202022-01-11%20at%2018.15.27.png)
+![Overviews](https://github.com/lynxnexy/immortalwrt/blob/main/pages/Screen%20Shot%202022-01-11%20at%2018.18.14.png)
+![Overviews](https://github.com/lynxnexy/immortalwrt/blob/main/pages/Screen%20Shot%202022-01-11%20at%2018.19.21.png)
+
+## Acknowledgments
+
+- [OpenWrt](https://github.com/openwrt/openwrt)
+- [ImmortalWrt](https://github.com/immortalwrt/immortalwrt)
+- [unifreq](https://github.com/unifreq/openwrt_packit)
+- [ophub](https://github.com/ophub/amlogic-s9xxx-openwrt)

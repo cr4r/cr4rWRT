@@ -7,8 +7,8 @@ fi
 
 export FORCE_UNSAFE_CONFIGURE=1
 
-REPO_URL=https://github.com/coolsnowwolf/lede
-REPO_BRANCH=master
+REPO_URL=https://github.com/immortalwrt/immortalwrt
+REPO_BRANCH=openwrt-21.02
 rootDir=$PWD
 hasilCompile=$rootDir/hasilCompile
 openwrt="$hasilCompile/openwrt"
@@ -96,7 +96,7 @@ msg -bar2 "Step 2 Part 1\nCustom Feeds"
 part="Step 2 Part 1"
 msg -ama "Menjalankan diy part 1"
 [ -e $FEEDS_CONF ] && cp -f $FEEDS_CONF $openwrt/feeds.conf.default
-chmod +x $DIY_P1_SH
+sudo chmod +x $DIY_P1_SH
 cd $openwrt
 fun_bar "$DIY_P1_SH"
 
@@ -155,23 +155,24 @@ if [[ $status != "sukses" ]]; then
     exit 1
 fi
 
-msg -ama "Step 5\nMengambil .ipk dari packages"
+msg -bar2 "Step 5\nMengambil file .tar.gz di\n$openwrt/bin/targets/*/*/*.tar.gz"
 part="Step 5"
-[ -d $ipk ] || mkdir -p $ipk
-cp -rf $(find $openwrt/bin/packages/ -type f -name "*.ipk") $ipk && sync
-
-msg -bar2 "Step 6\nMengambil file .tar.gz di\n$openwrt/bin/targets/*/*/*.tar.gz"
-part="Step 6"
 [ -d $lokarmvirt ] || mkdir -p $lokarmvirt
 cp -f $openwrt/bin/targets/*/*/*.tar.gz $lokarmvirt/ && sync
 sudo chmod +x make
-sudo make -d -b s905x -k 5.10.96_5.4.176
+sudo make -d -b s905x -k 5.4.180_5.10.101
 status="sukses"
 # Lanjut step jika sukses
 if [[ $status != "sukses" ]]; then
     msg -ama "Maaf ada masalah di bagian $part"
     exit 1
 fi
+
+msg -ama "Step 6\nMengambil .ipk dari packages"
+part="Step 6"
+[ -d $ipk ] || mkdir -p $ipk
+cp -rf $(find $openwrt/bin/packages/ -type f -name "*.ipk") $ipk && sync
+
 
 msg -ama "Step Akhir\nMemindahkan hasil compile tar.gz ke folder out"
 part="Step Akhir"
