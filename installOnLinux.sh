@@ -116,9 +116,9 @@ part="Step 3 Part 1"
 cd $rootDir
 [ -e files ] && mv files $openwrt/files
 [ -e $CONFIG_FILE ] && cp -f $CONFIG_FILE $openwrt/.config
-chmod +x $DIY_P2_SH
 msg -ama "Menjalankan diy part 2"
 cd $openwrt
+sudo chmod +x $DIY_P2_SH
 fun_bar "$DIY_P2_SH"
 
 status="sukses"
