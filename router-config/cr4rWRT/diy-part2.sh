@@ -19,7 +19,7 @@ sed -i "s/OpenWrt/cr4rWRT/g" package/kernel/mac80211/files/lib/wifi/mac80211.sh
 sed -i "s/iw /ipconfig /g" package/kernel/mac80211/files/lib/netifd/wireless/mac80211.sh
 
 # change hostname
-sed -i "s/ImmortalWrt/LYNX/g" package/base-files/files/bin/config_generate
+sed -i "s/ImmortalWrt/cr4rWRT/g" package/base-files/files/bin/config_generate
 
 # change banner
 rm -rf ./package/emortal/default-settings/files/openwrt_banner
